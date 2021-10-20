@@ -44,7 +44,7 @@ obtener_demanda <- function(anho = 2020, intervalo = "month", ccaa = "17") {
   path <- "/es/datos/demanda/evolucion"
   
   start_date <- ymd_hm(glue("{anho}-01-01T00:00"))  
-  end_date <- ymd_hm(glue("{anho}--12-31T23:59"))
+  end_date <- ymd_hm(glue("{anho}-12-31T23:59"))
   time_trunc <- intervalo
   geo_trunc <- "electric_system"
   geo_limit <- "ccaa"
