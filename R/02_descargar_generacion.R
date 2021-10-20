@@ -122,10 +122,11 @@ wb <- createWorkbook()
 # escribit todos los datos totales
 escribir_hoja(datos_escribir = produccion, workbook = wb, nombre_hoja = "produccion")
 escribir_hoja(datos_escribir = orixe_produccion, workbook = wb, nombre_hoja = "orixe_produccion")
-escribir_hoja(datos_escribir = orixe_porcentaxe, workbook = wb, nombre_hoja = "orixe_produccion")
+escribir_hoja(datos_escribir = orixe_porcentaxe, workbook = wb, nombre_hoja = "orixe_porcentaxe")
 escribir_hoja(datos_escribir = orixe_tipo_produccion, workbook = wb, nombre_hoja = "tipo_produccion")
 escribir_hoja(datos_escribir = orixe_tipo_porcentaxe, workbook = wb, nombre_hoja = "tipo_porcentaxe")
 # excel general
 saveWorkbook(wb = wb, 
              file = file.path("output", glue(fecha, "_{nombre}.xlsx")),
              overwrite = TRUE)
+
