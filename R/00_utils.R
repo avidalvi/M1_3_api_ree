@@ -95,3 +95,12 @@ scatter_color <- function(data, var_x, var_y, var_color){
   
   ggplotly(imagen1)
 }
+
+# esperar un tiempo
+esperar <- function(media) {
+  # espera para la siguiente llamada
+  espera <- rnorm(n = 1, mean = media, sd = sqrt(media))
+  espera <- ifelse(espera < 0, sqrt(media), espera)
+  cat(file = stderr(), paste(Sys.time(), "- esperando", round(espera, 2), "segundos \n"))
+  Sys.sleep(espera)
+}
