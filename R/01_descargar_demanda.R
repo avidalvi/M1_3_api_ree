@@ -67,7 +67,7 @@ obtener_demanda <- function(anho = 2020, intervalo = "month", ccaa = "17") {
       rename(consumo = value) %>% 
       select(fecha, consumo)
   } else {
-    cat(file = stderr(), paste("*****", Sys.time(), "- error de respuesta", status_code(home_page), "***** \n"))
+    cat(file = stderr(), paste("*****", Sys.time(), "- error de respuesta", status_code(respuesta), "***** \n"))
     valores <- NULL
   }
   
