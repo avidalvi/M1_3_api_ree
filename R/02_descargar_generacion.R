@@ -25,7 +25,7 @@ pacman::p_load(lubridate, glue, openxlsx, httr, jsonlite, tidyverse)
 
 set.seed(1234)
 
-# knitr::opts_chunk(list(warning = FALSE, message = FALSE, echo = FALSE, dpi = 180, fig.width = 6, fig.height = 6))
+knitr::opts_chunk$set(list(warning = FALSE, message = FALSE, echo = FALSE, dpi = 180, fig.width = 6, fig.height = 6))
 
 # parametros -----------------------------------------------------------------------------------------------------------
 
