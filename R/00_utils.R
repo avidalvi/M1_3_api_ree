@@ -104,3 +104,16 @@ esperar <- function(media) {
   cat(file = stderr(), paste(Sys.time(), "- esperando", round(espera, 2), "segundos \n"))
   Sys.sleep(espera)
 }
+
+# dibujar series temporales 
+dibujar_series <- function(datos_serie, columna_fecha, titulo){
+  # librerias necesarias
+  pacman::p_load(xts, dygraphs, lubridate, glue, tidyverse)
+  serie_ts <- xts(x = select(datos_serie, -{{columna_fecha}}), 
+                  order.by = select(datos_serie, {{columna_fecha}}) %>% pull())
+  dygraph(data = serie_ts, main = titulo, group = "grupo") %>% dyRangeSelector() %>%
+    dyLegend(show = "follow") %>%
+    dyHighlight(highlightCircleSize = 4, highlightSeriesBackgroundAlpha = 0.5,
+                hideOnMouseOut = TRUE, highlightSeriesOpts = list(strokeWidth = 2))
+  
+}
