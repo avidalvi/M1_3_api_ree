@@ -39,14 +39,16 @@ ultimo_anho <- 2021
 
 source(file = "00_utils.R")
 
-obtener_tecnologia <- function(datos_tec){
+obtener_tecnologia <- function(datos_tec) {
   tecnoloxia <- datos_tec$attributes$title
   tipo <- datos_tec$attributes$type
   valores <- bind_rows(x = datos_tec$attributes$values)
-  valores <- valores %>% 
-    mutate(fecha = as.Date(datetime),
-           tecnoloxia = tecnoloxia,
-           tipo = tipo) %>% 
+  valores <- valores %>%
+    mutate(
+      fecha = as.Date(datetime),
+      tecnoloxia = tecnoloxia,
+      tipo = tipo
+    ) %>%
     select(-datetime)
 }
 
@@ -59,11 +61,11 @@ obtener_datos_API_ree_anuales_por_mes <- function(anho = 2020, category = "deman
   ))
   host <- "https://apidatos.ree.es"
   path <- glue("/es/datos/{category}/{widget}")
-  
+
   start_date <- ymd_hm(glue("{anho}-01-01T00:00"))
   end_date <- ymd_hm(glue("{anho}-12-31T23:59"))
   time_trunc <- "month"
-  
+
   respuesta <- try(GET(
     url = glue("{host}{path}"),
     query = list(
@@ -75,16 +77,52 @@ obtener_datos_API_ree_anuales_por_mes <- function(anho = 2020, category = "deman
       geo_ids = geo_ids
     )
   ))
-  
+
   if ((class(respuesta) != "try-error") && (status_code(respuesta) == 200)) {
     respuesta_transformada <- content(respuesta)
-    valores <- map_dfr(.x = respuesta_transformada$included, .f = ~obtener_tecnologia(datos_tec = .x))
+    valores <- map_dfr(.x = respuesta_transformada$included, .f = ~ obtener_tecnologia(datos_tec = .x))
   } else {
     cat(file = stderr(), paste("*****", Sys.time(), "- error de respuesta", status_code(respuesta), "***** \n"))
     valores <- NULL
   }
   return(valores)
 }
+
+obtener_datos_API_ree <- function(start_date = "2021-01-01", end_date = "2021-01-31",
+                                  category = "demanda", widget = "evolucion", time_trunc = "day",
+                                  geo_trunc = "electric_system", geo_limit = "ccaa", geo_ids = "17") {
+  cat(file = stderr(), paste(
+    Sys.time(),
+    glue("- descargando datos de {category}/{widget} para {geo_limit} {geo_ids}"),
+    "\n"
+  ))
+  host <- "https://apidatos.ree.es"
+  path <- glue("/es/datos/{category}/{widget}")
+
+  respuesta <- try(GET(
+    url = glue("{host}{path}"),
+    query = list(
+      start_date = start_date,
+      end_date = end_date,
+      time_trunc = time_trunc,
+      geo_trunc = geo_trunc,
+      geo_limit = geo_limit,
+      geo_ids = geo_ids
+    )
+  ))
+
+  if ((class(respuesta) != "try-error") && (status_code(respuesta) == 200)) {
+    respuesta_transformada <- content(respuesta)
+    valores <- map_dfr(.x = respuesta_transformada$included, .f = ~ obtener_tecnologia(datos_tec = .x))
+  } else {
+    cat(file = stderr(), paste("*****", Sys.time(), "- error de respuesta", status_code(respuesta), "***** \n"))
+    valores <- NULL
+  }
+  return(valores)
+}
+
+datos <- obtener_datos_API_ree_por_dia(geo_trunc = NULL, geo_limit = NULL, geo_ids = NULL, time_trunc = "month")
+
 
 # ejecucion ------------------------------------------------------------------------------------------------------------
 
@@ -102,21 +140,23 @@ generacion_absoluta <- map_dfr(.x = anhos, .f = ~ obtener_datos_API_ree_anuales_
   geo_trunc = NULL, geo_limit = NULL, geo_ids = NULL
 ))
 
-generacion_galicia <- generacion_galicia %>% 
-  filter(tipo == "Renovable") %>% 
-  select(fecha, value) %>% 
+generacion_galicia <- generacion_galicia %>%
+  filter(tipo == "Renovable") %>%
+  select(fecha, value) %>%
   rename(generacion_galicia = value)
 
-generacion_absoluta <- generacion_absoluta %>% 
-  filter(tipo == "Renovable") %>% 
-  select(fecha, value) %>% 
+generacion_absoluta <- generacion_absoluta %>%
+  filter(tipo == "Renovable") %>%
+  select(fecha, value) %>%
   rename(generacion_absoluta = value)
 
-renovable <- left_join(x = generacion_absoluta, y = generacion_galicia, by = "fecha") %>% 
+renovable <- left_join(x = generacion_absoluta, y = generacion_galicia, by = "fecha") %>%
   mutate(porcentaje_galicia = round(generacion_galicia / generacion_absoluta * 100, 2))
 
-dibujar_series(datos_serie = select(renovable, fecha, starts_with("generacion")), 
-               columna_fecha = "fecha", titulo = "Generación renovables")
+dibujar_series(
+  datos_serie = select(renovable, fecha, starts_with("generacion")),
+  columna_fecha = "fecha", titulo = "Generación renovables"
+)
 
 
 # guardar el resultado --------------------------------------------------------------------------------------------
@@ -130,4 +170,3 @@ saveWorkbook(
   file = file.path("output", glue(fecha, "_{nombre_tabla}.xlsx")),
   overwrite = TRUE
 )
-
